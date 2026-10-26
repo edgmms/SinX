@@ -1,0 +1,45 @@
+# .NET build output
+**/bin/
+**/obj/
+artifacts/
+publish/
+
+# Test and coverage output
+TestResults/
+coverage/
+coverage.*
+*.trx
+
+# IDE and editor state
+.vs/
+.idea/
+.vscode/
+*.suo
+*.user
+*.userosscache
+*.sln.docstates
+
+# Local runtime data
+*.db
+*.db-shm
+*.db-wal
+*.sqlite
+*.sqlite3
+logs/
+*.log
+
+# Local configuration and secrets
+appsettings.Local.json
+appsettings.*.Local.json
+.env
+.env.*
+!.env.example
+*.pfx
+*.p12
+*.key
+
+# Operating system files
+.DS_Store
+Thumbs.db
+Desktop.ini
+
