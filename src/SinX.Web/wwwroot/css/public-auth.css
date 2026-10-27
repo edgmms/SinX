@@ -1,0 +1,65 @@
+.sinx-public-shell {
+    margin: 0;
+    color: var(--text, #253347);
+    font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+}
+
+.sinx-public-shell .auth-page {
+    min-height: 100vh;
+    padding: 2rem 1rem;
+}
+
+.sinx-public-shell .auth-card {
+    width: min(100%, 28rem);
+}
+
+.sinx-public-shell .auth-title {
+    margin: 1.5rem 0 .5rem;
+}
+
+.sinx-submit {
+    width: 100%;
+    justify-content: center;
+}
+
+.validation-summary:empty,
+.field-validation-error:empty {
+    display: none;
+}
+
+.field-validation-error,
+.validation-summary {
+    display: block;
+    margin-top: .4rem;
+    color: #b42318;
+    font-size: .875rem;
+}
+
+.transport-warning {
+    position: fixed;
+    z-index: 1;
+    right: 1rem;
+    bottom: 1rem;
+    max-width: 28rem;
+    margin: 0;
+    padding: .75rem 1rem;
+    border: 1px solid #f7b955;
+    border-radius: .5rem;
+    background: #fff8e8;
+    color: #6e4700;
+}
+
+.skip-link {
+    position: absolute;
+    top: -4rem;
+    left: 1rem;
+    z-index: 2;
+    padding: .75rem 1rem;
+    border-radius: .25rem;
+    background: #fff;
+    color: #1546a0;
+}
+
+.skip-link:focus {
+    top: 1rem;
+}

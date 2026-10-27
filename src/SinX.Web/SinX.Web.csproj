@@ -1,0 +1,11 @@
+<Project Sdk="Microsoft.NET.Sdk.Web">
+  <ItemGroup>
+    <ProjectReference Include="../SinX.Application/SinX.Application.csproj" />
+    <ProjectReference Include="../SinX.Infrastructure/SinX.Infrastructure.csproj" />
+    <ProjectReference Include="../SinX.Contracts/SinX.Contracts.csproj" />
+  </ItemGroup>
+  <ItemGroup>
+    <PackageReference Include="Microsoft.Extensions.Hosting.WindowsServices" />
+    <PackageReference Include="Grpc.Net.Client" />
+  </ItemGroup>
+</Project>

@@ -1,0 +1,5 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <ItemGroup>
+    <ProjectReference Include="../SinX.Domain/SinX.Domain.csproj" />
+  </ItemGroup>
+</Project>

@@ -26,7 +26,7 @@ Kullanıcı tarafından onaylanmış çok adımlı bir iş planı yürütülüyo
 - Bağımlılık yönü: `Web/Worker/Adapters/Infrastructure -> Application -> Domain`.
 - `SinX.Domain` hiçbir framework, EF Core, ASP.NET Core, Windows API veya provider projesine referans vermez.
 - İş kuralı controller, Razor view, EF configuration, PowerShell veya provider adapter içinde yazılmaz.
-- MVC controller/PageModel yalnızca input mapping, authorization boundary, use-case çağrısı ve response mapping yapar.
+- MVC controller yalnızca input mapping, authorization boundary, use-case çağrısı ve response mapping yapar.
 - Domain entity hiçbir zaman view, API veya IPC modeli olarak dışarı verilmez.
 - Web process yönetici işlemini doğrudan yapmaz; tip güvenli contract ile Worker'a job gönderir.
 - Domain kapsamlı her sorgu ve komut server-side `domainId` authorization filtresinden geçer.
@@ -44,9 +44,9 @@ Kullanıcı tarafından onaylanmış çok adımlı bir iş planı yürütülüyo
 | SQLite, EF Core, Identity, repository implementasyonu | `src/SinX.Infrastructure/` |
 | Windows işletim sistemi adapter'ı | `src/SinX.Windows/` |
 | IIS/DNS/MailEnable/database provider adapter'ları | İlgili `src/SinX.*` provider projesi |
-| Controller, PageModel, ViewModel, Razor view | `src/SinX.Web/` |
+| Controller, ViewModel, Razor view | `src/SinX.Web/` |
 | Privileged job endpoint ve composition root | `src/SinX.Worker/` |
-| Unit/integration/contract/VM/UI testleri | Karşılık gelen `tests/SinX.*Tests/` projesi |
+| Unit/integration/contract/VM/UI testleri | Karşılık gelen `src/tests/SinX.*Tests/` projesi |
 | Mimari karar | `docs/adr/` |
 
 ## Kodlama ve teslim kuralları

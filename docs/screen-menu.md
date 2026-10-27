@@ -79,7 +79,7 @@ Yeni Domain
     └── FTP Parola Tekrarı
 ```
 
-- Domain panel hesabı `http://<domain>:8080` girişinde kullanılır ve yalnızca oluşturulan domainin detay menülerini açar.
+- Domain panel hesabı gelecekte yayımlanacak domain panelinde yalnızca oluşturulan domainin detay menülerini açar; başlangıç hostunda domain paneli bulunmaz.
 - Application Pool için parola alanı gösterilmez; IIS sanal `ApplicationPoolIdentity` otomatik oluşturulur.
 - SQL Server yerel provider ise pool kimliğine bağlı Windows login hazırlanır. Diğer provider'larda pool/domain binding'ine özel native database principal otomatik üretilir.
 - FTP etkinleştirilirse domain panel hesabından ayrı non-admin Windows hesabı oluşturulur.
@@ -142,7 +142,7 @@ Domainler
       └── Ayarlar
 ```
 
-Aynı sekme kümesi domain kullanıcısına `http://<domain>:8080` üzerinde gösterilir. Bu görünümde sunucu sol menüsü, başka domain seçimi, component/provider kurulumu ve global ayarlar bulunmaz. Sekmelerdeki tüm veri ve aksiyonlar oturumun `domainId` değeriyle backend tarafında sınırlandırılır.
+Bu sekme kümesi domain paneli yayımlandığında domain kullanıcısına gösterilir. Bu görünümde sunucu sol menüsü, başka domain seçimi, component/provider kurulumu ve global ayarlar bulunmaz. Sekmelerdeki tüm veri ve aksiyonlar oturumun `domainId` değeriyle backend tarafında sınırlandırılır.
 
 | Domain sekmesi | Domaine bağlı içerik | Birincil agent | Destek agent'ları |
 |---|---|---|---|

@@ -12,9 +12,10 @@
 - Hedef platform: Windows Server
 - Çalışma modeli: Uygulama, yöneteceği Windows Server üzerinde yerel olarak çalışır
 - Yönetim arayüzü: Web
-- Varsayılan port: `57500/TCP`
-- Domain kullanıcı paneli portu: `8080/TCP`
+- Başlangıç hostu: yalnız `localhost:8080/TCP`
+- Domain kullanıcı paneli: henüz yayımlanmaz; endpoint ve dış erişim kararı ayrı bir iş kalemidir
 - Varsayılan erişim: HTTP desteklenir, HTTPS zorunlu değildir
+- Başlangıç dili: `tr-TR`; kullanıcı arayüzü `en-US` seçeneğini yalnız allowlist edilmiş culture cookie'siyle sunar
 - Teknoloji ve altyapı: [Teknoloji ve Altyapı Kararları](technology-stack.md)
 
 ### 1.1 Agent kullanım kuralı
@@ -47,7 +48,7 @@ Plesk bu ürünün bir bileşeni, bağımlılığı veya kurulum seçeneği değ
 
 1. Uygulama IIS kurulmadan da çalışabilmelidir.
 2. Web uygulaması Windows Service olarak self-hosted biçimde çalışmalıdır.
-3. Uygulama `57500/TCP` portundan erişilebilir olmalıdır.
+3. Başlangıç uygulaması yalnız `localhost:8080/TCP` üzerinden erişilebilir olmalıdır.
 4. HTTPS desteklenebilir ancak zorunlu değildir.
 5. İlk kurulum ekranında bileşen seçimi yapılmaz.
 6. İlk kurulum ekranı yalnızca uygulamaya ait Windows yönetim hesabının kullanıcı adı ve parolasını ister.
@@ -65,7 +66,7 @@ Plesk bu ürünün bir bileşeni, bağımlılığı veya kurulum seçeneği değ
 18. Database erişimi domaine ve pool'a bağlı bir principal binding üzerinden sağlanır; principal başka domainlerin database'lerine yetkili olamaz.
 19. SQL Server aynı sunucuda çalışıyorsa IIS pool sanal hesabı doğrudan Windows login olarak kullanılabilir. Diğer provider'larda domaine özel native database kullanıcısı oluşturulur.
 20. FTP hesabı yalnızca kullanıcı isterse ayrıca oluşturulur; yerel Administrator üyesi olmaz ve yalnızca domain dizinine erişir.
-21. Domain kullanıcıları `8080/TCP` üzerinden kendi domain yönetim ekranına erişir ve yalnızca bağlı oldukları `domainId` kapsamındaki işlemleri görebilir ve çalıştırabilir.
+21. Domain kullanıcı paneli bu başlangıç hostunda yayımlanmaz; ileride eklendiğinde yalnız bağlı `domainId` kapsamındaki işlemleri görebilir ve çalıştırabilir.
 22. Domain panel hesabı uygulama hesabıdır; Windows yöneticisi, FTP hesabı veya Application Pool identity değildir.
 23. Application Pool için kullanıcıdan parola istenmez. IIS tarafından yönetilen `ApplicationPoolIdentity` kullanılır.
 
@@ -89,7 +90,7 @@ Uygulamanın installer'ı Windows üzerinde yükseltilmiş yönetici yetkisiyle 
 Uygulama ilk kez aşağıdaki adreste açılır:
 
 ```text
-http://<SERVER_IP_OR_HOSTNAME>:57500/setup
+http://localhost:8080/setup
 ```
 
 Kurulum ekranında yalnızca şu alanlar bulunur:
@@ -134,7 +135,7 @@ Kurulum tamamlanırken sistem:
 Web paneline girişte kurulum sırasında oluşturulan aynı Windows hesabı kullanılır:
 
 ```text
-http://<SERVER_IP_OR_HOSTNAME>:57500/login
+http://localhost:8080/login
 ```
 
 Giriş akışı:
@@ -181,10 +182,10 @@ Yönetim hesabının parolası panelden değiştirilirse işlem tek bir yönetil
 > **Birincil agent:** `web_security_specialist`  
 > **Destek agent'ları:** `domain_hosting_specialist`, `automation_api_specialist`
 
-Her domain, oluşturma sırasında tanımlanan domain kullanıcı adı ve parolasıyla aşağıdaki panelden giriş yapar:
+Domain kullanıcı paneli ayrı bir sonraki iş kaleminde yayımlanacaktır; başlangıç hostu bu paneli içermez.
 
 ```text
-http://<DOMAIN_NAME>:8080/login
+Henüz tanımlı bir domain panel endpoint'i yoktur.
 ```
 
 - Kullanıcı adı domain kapsamında benzersiz uygulama hesabıdır; Windows hesabı oluşturmaz.
@@ -192,7 +193,7 @@ http://<DOMAIN_NAME>:8080/login
 - Başarılı giriş sonrasında oturum değişmez `domainId` ve domain rol/izinleriyle bağlanır.
 - `Host` header yalnızca tenant çözümlemeye yardımcı olur; yetkilendirmenin tek kanıtı değildir.
 - Her API sorgusu ve komutu sunucu tarafında oturumdaki `domainId` ile sınırlandırılır. İstemciden gönderilen başka bir `domainId` kabul edilmez.
-- Domain kullanıcısı `57500` yönetici paneline, sunucu menülerine veya başka domainlerin kaynaklarına erişemez.
+- Domain kullanıcı paneli eklendiğinde yönetici menülerine veya başka domainlerin kaynaklarına erişemez.
 - Bilinmeyen, pasif veya başka domaine ait host adıyla gelen istek reddedilir.
 - Kullanıcı adı/parola değişikliği, başarısız girişler ve tüm yönetim işlemleri domain kimliğiyle audit log'a yazılır.
 
@@ -203,10 +204,7 @@ http://<DOMAIN_NAME>:8080/login
 
 ```mermaid
 flowchart TD
-    ADB[Sunucu yöneticisi] -->|HTTP veya isteğe bağlı HTTPS :57500| W[Web UI ve Backend API]
-    DU[Domain kullanıcısı] -->|HTTP veya isteğe bağlı HTTPS :8080| DP[Domain Paneli]
-    DP --> A[Kimlik Doğrulama ve Yetkilendirme]
-    DP --> J[Job Queue]
+    ADB[Sunucu yöneticisi] -->|Yalnız HTTP localhost:8080| W[Web UI ve Backend API]
     W --> A[Kimlik Doğrulama ve Yetkilendirme]
     W --> J[Job Queue]
     W --> R[Salt Okunur Sorgu Katmanı]
@@ -225,8 +223,8 @@ flowchart TD
 > **Birincil agent:** `web_server_specialist`  
 > **Destek agent'ları:** `web_security_specialist`, `automation_api_specialist`
 
-- İnternet üzerinden `57500/TCP` portunda hizmet verir.
-- Domain kullanıcı arayüzü `8080/TCP` portunda ayrı endpoint olarak sunulur; sunucu yönetimi route'ları bu endpoint'te yayınlanmaz.
+- Başlangıçta yalnız `localhost:8080/TCP` üzerinde hizmet verir.
+- Domain kullanıcı arayüzü henüz yayımlanmaz; bu hostta yalnız Setup/Login yönetici rotaları bulunur.
 - Mümkün olan en düşük Windows yetkisiyle çalışır.
 - Kullanıcıdan gelen ham PowerShell, shell veya SQL metnini doğrudan çalıştırmaz.
 - İstekleri doğrular ve yalnızca tanımlı operasyonlara dönüştürür.
@@ -239,6 +237,8 @@ flowchart TD
 - Kurulumda oluşturulan yerel yönetim hesabıyla çalışır.
 - Yalnızca önceden tanımlanmış, tip güvenli operasyonları kabul eder.
 - Web katmanıyla local-only Named Pipe veya eşdeğer korumalı IPC üzerinden haberleşir.
+- IPC isteği contract sürümü, allowlist operation, operation ID, actor/bootstrap, server scope, target ve correlation ID taşır; ham parola yalnızca Worker sınırında tüketilen kısa ömürlü opaque secret reference ile temsil edilir.
+- Pipe ACL'si yalnız Web service identity ve Worker service identity için kurulmalıdır. Worker kurulmamış, ACL doğrulanmamış veya contract geçersizse Web fail-closed davranır.
 - Uzun süren işlemleri job olarak yürütür.
 - Her işlem için önceki durum, hedef durum, sonuç ve hata bilgisini üretir.
 
@@ -309,7 +309,7 @@ Domain
 
 | Kimlik | Amaç | Saklama/doğrulama | Yetki sınırı |
 |---|---|---|---|
-| Domain panel kullanıcısı | `:8080` domain paneline giriş | Uygulama database'inde güçlü password hash | Yalnızca bağlı `domainId` |
+| Domain panel kullanıcısı | Gelecekteki domain paneline giriş | Uygulama database'inde güçlü password hash | Yalnızca bağlı `domainId` |
 | IIS Application Pool identity | Website worker process ve NTFS erişimi | IIS sanal hesabı; parola yok | Yalnızca domain document root'u ve açıkça verilen kaynaklar |
 | Database principal binding | Website'in database bağlantısı | Provider'a göre Windows-integrated veya şifreli native credential | Yalnızca atanmış database/schema |
 | FTP Windows hesabı | Haricî FTP/FTPS dosya erişimi | Windows yerel hesap altyapısı | Yalnızca domain FTP root'u; Administrator değil |
@@ -612,7 +612,7 @@ Onay ekranı hedef kapsamı açıkça göstermelidir. Domain işlemlerinde domai
 > **Birincil agent:** `server_operations_specialist`  
 > **Destek agent'ları:** Her geliştirme adımının yanında belirtilmiştir.
 
-1. Windows Service host ve `57500` portu — `windows_server_engineer`, `web_server_specialist`
+1. Windows Service host ve yalnız `localhost:8080` portu — `windows_server_engineer`, `web_server_specialist`
 2. İlk kurulum durumu ve hesap oluşturma ekranı — `windows_server_engineer`, `server_operations_specialist`, `web_security_specialist`
 3. Yerel Windows hesabı, Administrators üyeliği ve Worker Service yapılandırması — `windows_server_engineer`
 4. Windows hesabıyla login ve oturum yönetimi — `web_security_specialist`, `windows_server_engineer`
@@ -634,7 +634,7 @@ Onay ekranı hedef kapsamı açıkça göstermelidir. Domain işlemlerinde domai
 > **Destek agent'ları:** `windows_server_engineer`, `web_security_specialist`, `domain_hosting_specialist`
 
 - Uygulama IIS kurulu değilken Windows Service olarak başlayabilmelidir.
-- `57500/TCP` portundan kurulum ekranına erişilebilmelidir.
+- `localhost:8080/TCP` portundan kurulum ekranına erişilebilmelidir.
 - Kurulum ekranında bileşen seçimi bulunmamalıdır.
 - Kurulumda yalnızca kullanıcı adı ve parola bilgisi istenmelidir.
 - Oluşturulan hesap yerel Administrators grubunda olmalıdır.

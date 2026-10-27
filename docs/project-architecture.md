@@ -44,35 +44,33 @@ Microsoft'un Clean Architecture yaklaşımında iş modeli merkezdedir ve bağı
 > **Destek agent'ları:** `server_operations_specialist`, `windows_server_engineer`
 
 ```text
-SinX.sln
-├── src/
-│   ├── SinX.Domain/
-│   ├── SinX.Application/
-│   ├── SinX.Contracts/
-│   ├── SinX.Infrastructure/
-│   ├── SinX.Windows/
-│   ├── SinX.Iis/
-│   ├── SinX.Dns/
-│   ├── SinX.MailEnable/
-│   ├── SinX.Database.Abstractions/
-│   ├── SinX.Database.SqlServer/
-│   ├── SinX.Database.PostgreSql/
-│   ├── SinX.Database.MySql/
-│   ├── SinX.Database.MariaDb/
-│   ├── SinX.Web/
-│   └── SinX.Worker/
-├── tests/
-│   ├── SinX.Domain.UnitTests/
-│   ├── SinX.Application.UnitTests/
-│   ├── SinX.Infrastructure.IntegrationTests/
-│   ├── SinX.ContractTests/
-│   ├── SinX.ArchitectureTests/
-│   ├── SinX.WindowsVmTests/
-│   └── SinX.UiTests/
-├── docs/
-│   └── adr/
-├── AGENTS.md
-├── Directory.Build.props
+src/
+├── SinX.sln
+├── SinX.Domain/
+├── SinX.Application/
+├── SinX.Contracts/
+├── SinX.Infrastructure/
+├── SinX.Windows/
+├── SinX.Iis/
+├── SinX.Dns/
+├── SinX.MailEnable/
+├── SinX.Database.Abstractions/
+├── SinX.Database.SqlServer/
+├── SinX.Database.PostgreSql/
+├── SinX.Database.MySql/
+├── SinX.Database.MariaDb/
+├── SinX.Web/
+├── SinX.Worker/
+└── tests/
+    ├── SinX.Domain.UnitTests/
+    ├── SinX.Application.UnitTests/
+    ├── SinX.Infrastructure.IntegrationTests/
+    ├── SinX.ContractTests/
+    ├── SinX.ArchitectureTests/
+    ├── SinX.WindowsVmTests/
+    └── SinX.UiTests/
+../AGENTS.md
+../Directory.Build.props
 ├── Directory.Packages.props
 ├── global.json
 └── .editorconfig
@@ -111,7 +109,7 @@ flowchart BT
 | `SinX.Web` | Application, Contracts; yalnız composition root'ta registration extension'ları | Worker implementation, doğrudan Windows/IIS/DNS/DB yönetim API'leri |
 | `SinX.Worker` | Application, Contracts ve adapter registration'ları | Web, Razor/MVC türleri |
 
-`Program.cs` composition root'tur. Somut infrastructure sınıflarının görünmesi burada kabul edilir; controller, PageModel veya application handler somut infrastructure sınıfı oluşturmamalıdır.
+`Program.cs` composition root'tur. Somut infrastructure sınıflarının görünmesi burada kabul edilir; controller veya application handler somut infrastructure sınıfı oluşturmamalıdır.
 
 ## 4. Katman sorumlulukları
 
@@ -258,9 +256,6 @@ Provider projeleri birbirine referans vermez. Ortak database sözleşmeleri `Sin
 ```text
 SinX.Web/
 ├── Controllers/
-├── Pages/
-│   ├── Setup/
-│   └── Account/
 ├── ViewModels/
 ├── Views/
 │   ├── Shared/
@@ -273,10 +268,10 @@ SinX.Web/
 └── wwwroot/
 ```
 
-- Controller ve PageModel ince tutulur; iş kuralı içermez.
+- Controller ince tutulur; iş kuralı içermez.
 - Input model/ViewModel yalnız UI içindir ve Domain entity olarak kullanılmaz.
 - POST/PUT/DELETE benzeri state-changing form ve endpoint'lerde anti-forgery zorunludur.
-- `57500` ve `8080` authentication scheme/policy sınırları açıkça ayrılır.
+- Başlangıç hostunda yalnız yönetici authentication sınırı bulunur; domain paneli yayımlanana kadar tenant authentication scheme/policy eklenmez.
 - Domain kullanıcısının `domainId` değeri form, query string veya route'tan güven kaynağı olarak alınmaz; authenticated tenant context ile doğrulanır.
 - Razor view veri erişimi, service resolution veya yetki kararı yapmaz.
 - Gentelella sınıfları yalnız Views ve `wwwroot` içinde kalır.

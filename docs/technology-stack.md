@@ -20,13 +20,14 @@ Bu doküman SinX uygulamasının teknoloji yığınını, process mimarisini, ka
 |---|---|
 | Platform | Windows Server x64 |
 | Backend | C# ve .NET 10 LTS |
-| Web framework | ASP.NET Core 10 MVC, Razor Pages ve REST API |
+| Web framework | ASP.NET Core 10 MVC ve REST API |
 | Web sunucusu | Self-hosted Kestrel |
-| Yönetim endpoint'leri | Sunucu yöneticisi `57500/TCP`, domain paneli `8080/TCP` |
+| Başlangıç endpoint'i | Yalnız HTTP `localhost:8080/TCP`; domain paneli henüz yayımlanmaz |
 | Frontend | Server-rendered Razor Views/Pages, HTML5 ve vanilla JavaScript |
 | UI sistemi | Gentelella v4 HTML admin template |
 | UI varlıkları | Versionlanmış ve uygulamaya gömülü Gentelella CSS/JS çıktıları |
 | Form doğrulama | ASP.NET Core Model Binding, DataAnnotations, ModelState ve HTML5 doğrulama |
+| Yerelleştirme | Web katmanında `IStringLocalizer`, varsayılan/fallback `tr-TR`, izinli `en-US` |
 | Gerçek zamanlı bildirim | ASP.NET Core SignalR |
 | Süreçler arası iletişim | gRPC over Windows Named Pipes |
 | Yerel uygulama veritabanı | SQLite ve EF Core 10 |
@@ -53,10 +54,9 @@ Başlangıç mimarisi mikroservis değildir. Tek repository ve tek ürün paketi
 
 ```mermaid
 flowchart TD
-    Admin[Sunucu yöneticisi] -->|HTTP veya opsiyonel HTTPS :57500| Web[SinX.Web Windows Service]
-    Tenant[Domain kullanıcısı] -->|HTTP veya opsiyonel HTTPS :8080| Web
+    Admin[Sunucu yöneticisi] -->|HTTP localhost:8080| Web[SinX.Web Windows Service]
     Web --> Auth[Windows Account Authentication]
-    Web --> Mvc[ASP.NET Core MVC ve Razor Pages]
+    Web --> Mvc[ASP.NET Core MVC]
     Web --> Api[ASP.NET Core REST API]
     Web --> Hub[SignalR Hub]
     Api --> App[Application Modules]
@@ -85,7 +85,7 @@ ASP.NET Core uygulaması IIS'e bağımlı olmadan Windows Service olarak host ed
 - Windows Service, Event Log, certificate store, DPAPI, named pipe ve native Windows API entegrasyonu güçlüdür.
 - IIS, Windows servisleri, kullanıcı/grup, certificate ve process yönetimi için C#/.NET doğal seçimdir.
 - Self-contained yayın sayesinde hedef sunucuda ayrıca .NET Runtime kurulu olması zorunlu değildir.
-- Kestrel, IIS kurulmadan `57500/TCP` portunda çalışabilir.
+- Kestrel, IIS kurulmadan yalnız `localhost:8080/TCP` portunda çalışabilir.
 - ASP.NET Core Web API, SignalR, authentication, authorization, rate limiting ve OpenAPI ihtiyaçlarını tek platformda karşılar.
 - EF Core ile SQLite uygulama verisi tip güvenli şekilde yönetilebilir.
 
@@ -94,18 +94,19 @@ ASP.NET Core uygulaması IIS'e bağımlı olmadan Windows Service olarak host ed
 > **Birincil agent:** `web_server_specialist`  
 > **Destek agent'ları:** `web_security_specialist`, `monitoring_logging_specialist`
 
-Web arayüzü ASP.NET Core MVC ve Razor Pages tarafından sunucuda render edilir. Ayrı bir SPA, Node.js uygulaması veya Blazor katmanı bulunmaz. Gentelella v4'ün HTML düzeni Razor layout, partial ve view'lara bölünür.
+Web arayüzü ASP.NET Core MVC tarafından sunucuda render edilir. Ayrı bir SPA, Node.js uygulaması, Razor Pages veya Blazor katmanı bulunmaz. Gentelella v4'ün HTML düzeni Razor layout, partial ve view'lara bölünür.
 
 Web arayüzü kararları:
 
 - Ana kabuk `Views/Shared/_Layout.cshtml` içinde tanımlanır.
 - Sidebar, header, footer, breadcrumb ve bildirim alanları partial view olarak ayrılır.
-- Setup, login ve Identity ekranları Razor Pages; yönetim ekranları MVC controller/view yapısıyla geliştirilir.
+- Setup, login, Identity ve yönetim ekranları MVC controller/view yapısıyla geliştirilir.
 - Formlar strongly typed view model, Model Binding, DataAnnotations ve `ModelState` ile sunucu tarafında doğrulanır.
 - İstemci doğrulaması yardımcıdır; hiçbir güvenlik veya iş kuralı yalnızca tarayıcı JavaScript'ine bırakılmaz.
 - Küçük etkileşimler vanilla JavaScript ve Fetch API ile yapılır.
 - SignalR yalnızca job ilerlemesi, servis durumu ve uyarı güncellemelerinde kullanılır.
 - Sunucu ve domain kapsamı ASP.NET Core route, authentication scheme ve authorization policy'leriyle ayrılır.
+- Kültür seçimi yalnız Web'in allowlist edilmiş culture cookie'sinden okunur; route, query string, API/IPC contract veya domain model kültür kaynağı değildir.
 - Erişilebilirlik hedefi WCAG 2.2 AA'dır.
 
 Gentelella'nın versionlanmış üretim CSS/JS çıktıları `SinX.Web/wwwroot/vendor/gentelella` altında uygulamayla birlikte dağıtılır. CDN kullanılmaz. Vite ve Node.js standart SinX build veya production çalışması için zorunlu değildir; tema kaynakları yeniden derlenecekse yalnızca kontrollü UI asset bakım sürecinde kullanılır ve üretilen dosyalar repository'ye alınır.
@@ -157,12 +158,12 @@ src/
 ├── SinX.Database.MariaDb
 ├── SinX.Web
 │   ├── Controllers
-│   ├── Pages
+│   ├── ViewModels
 │   ├── Views
 │   └── wwwroot/vendor/gentelella
 └── SinX.Worker
 
-tests/
+src/tests/
 ├── SinX.Domain.UnitTests
 ├── SinX.Application.UnitTests
 ├── SinX.Infrastructure.IntegrationTests
@@ -187,9 +188,8 @@ MediatR veya kapsamlı bir CQRS framework'ü başlangıç için zorunlu değildi
 > **Destek agent'ı:** `web_security_specialist`
 
 - Düşük yetkili Windows service identity ile çalışır.
-- `0.0.0.0:57500` üzerinde sunucu yönetici endpoint'ini açar.
-- `0.0.0.0:8080` üzerinde yalnızca domain paneli endpoint'ini açar.
-- Port `8080` endpoint'inde setup, sunucu yönetimi, provider kurulumu, global ayarlar ve yönetici API route'ları yayınlanmaz.
+- Başlangıçta yalnız HTTP `localhost:8080` üzerinde Setup/Login yönetici endpoint'lerini açar.
+- Domain paneli endpoint'i henüz yayımlanmaz; bu nedenle tenant route veya ayrı domain authentication scheme'i bu kalemde bulunmaz.
 - Domain endpoint'inde kimlik doğrulanan hesabın `domainId` kapsamı backend authorization policy ve sorgu filtreleriyle zorunlu tutulur.
 - Razor Views/Pages, Gentelella statik varlıkları ve REST API'yi sunar.
 - Kullanıcı girdisini doğrular.
@@ -215,6 +215,8 @@ MediatR veya kapsamlı bir CQRS framework'ü başlangıç için zorunlu değildi
 > **Destek agent'ı:** `web_security_specialist`
 
 Web ve Worker arasında gRPC over Windows Named Pipes kullanılır. ASP.NET Core/Kestrel için named-pipe transport ve pipe security desteği mevcuttur: [gRPC ve Named Pipes ile IPC](https://learn.microsoft.com/en-us/aspnet/core/grpc/interprocess-namedpipes).
+
+Geçit yalnız versioned typed envelope kabul eder: contract version, allowlist operation, operation ID, actor/bootstrap, server scope/target, correlation ID ve opaque secret reference. Parola IPC, audit, log veya kalıcı state içine girmez; Worker referansı bir kez ve TTL içinde tüketir. Named-pipe host/ACL installer tarafından sağlanmadığında Web ayrıcalıklı iş yürütmez ve request'i reddeder.
 
 IPC kuralları:
 
@@ -270,11 +272,11 @@ GET  /api/v1/jobs/{jobId}
 > **Birincil agent:** `web_security_specialist`  
 > **Destek agent'ları:** `domain_hosting_specialist`, `automation_api_specialist`
 
-- Domain oluşturulurken alınan kullanıcı adı ve parola yalnızca `:8080` domain paneli içindir.
+- Domain oluşturulurken alınan kullanıcı adı ve parola yalnızca gelecekte yayımlanacak domain paneli içindir.
 - Parola adaptif password hash olarak saklanır; Application Pool, FTP veya database parolası olarak tekrar kullanılmaz.
 - Oturum claim'leri değişmez `domainId` taşır ve tüm repository/command erişimleri bu kapsamı zorunlu uygular.
 - Host adı ile bulunan domain ve oturumdaki `domainId` uyuşmazsa istek reddedilir.
-- Domain hesabı `:57500` yönetici endpoint'inde geçerli değildir.
+- Domain hesabı gelecekteki yönetici endpoint'inde geçerli değildir.
 
 ## 10. Yerel uygulama verisi
 
@@ -498,7 +500,7 @@ MSI görevleri:
 - `C:\Program Files\SinX` altına salt-okunur program dosyaları
 - `C:\ProgramData\SinX` altında data, keys, logs ve job artifacts dizinleri
 - `SinX.Web` ve `SinX.Worker` Windows Service kayıtları
-- `57500/TCP` ve `8080/TCP` Windows Firewall kuralları
+- Başlangıçta dış erişim açılmaz; yalnız `localhost:8080/TCP` Kestrel binding'i kullanılır.
 - Gerekli klasör ve named pipe ACL'leri
 - Uninstall ve repair kayıtları
 - Event Log source kaydı
@@ -566,7 +568,7 @@ Windows rolleri, IIS, DNS ve servis hesabı davranışı Linux container üzerin
 > **Destek agent'ları:** Her adımın ilgili uzman agent'ı
 
 1. Solution yapısı, build standardı ve ortak contracts
-2. `SinX.Web` Windows Service ve Kestrel `57500` endpoint'i
+2. `SinX.Web` Windows Service ve yalnız `localhost:8080` Kestrel endpoint'i
 3. Gentelella HTML kabuğunun MVC/Razor layout ve partial view'lara dönüştürülmesi; login ve setup ekranları
 4. SQLite/EF Core migration altyapısı
 5. Setup state ve yerel Windows hesabı oluşturma
@@ -578,7 +580,7 @@ Windows rolleri, IIS, DNS ve servis hesabı davranışı Linux container üzerin
 11. IIS ve DNS adapter'ları
 12. Domain aggregate ve domain ekranları
 13. Database provider abstraction ve dört başlangıç provider'ı
-14. Domain paneli `8080`, domain hesabı ve tenant authorization testleri
+14. Domain paneli endpoint'i, domain hesabı ve tenant authorization testleri (ayrı endpoint kararı verildiğinde)
 15. Application Pool/database principal binding ve çapraz-domain negatif erişim testleri
 16. MailEnable Standard adapter'ı
 17. Installer MSI, upgrade ve repair akışları
@@ -599,7 +601,7 @@ Windows rolleri, IIS, DNS ve servis hesabı davranışı Linux container üzerin
 - Job'lar process ve sunucu restartı sonrasında güvenli şekilde değerlendirilebilmelidir.
 - SQLite bozulması ve migration hatası için backup/restore prosedürü bulunmalıdır.
 - Database provider eklemek core/domain sözleşmelerini değiştirmemelidir.
-- Domain kullanıcısı `8080` üzerinden yalnızca kendi `domainId` kaynaklarına erişebilmelidir; `57500` yönetici endpoint'ine erişememelidir.
+- Domain paneli henüz yayımlanmadığından başlangıç hostu yalnız yönetici Setup/Login rotalarını sunmalıdır; tenant endpoint'i eklendiğinde domain kullanıcısı yalnız kendi `domainId` kaynaklarına erişebilmelidir.
 - Her website ayrı Application Pool kullanmalı; database principal'ı yalnızca atanmış database'e erişmeli ve çapraz-domain erişim testi başarısız olmalıdır.
 - FTP hesabı oluşturulduğunda non-admin olmalı ve başka domain dizinine erişememelidir.
 - MSI temiz kurulum, upgrade, repair ve uninstall testlerinden geçmelidir.

@@ -39,6 +39,9 @@ csharp_style_prefer_not_pattern = true:suggestion
 
 dotnet_diagnostic.CA2007.severity = none
 
+[src/tests/**/*.cs]
+dotnet_diagnostic.CA1707.severity = none
+
 [*.{cshtml,html,css,js,json,md,yml,yaml}]
 indent_style = space
 indent_size = 2

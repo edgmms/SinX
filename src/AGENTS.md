@@ -36,7 +36,7 @@ Kod eklemeden önce şu sorular cevaplanır:
 3. Bu process dışına çıkan API/IPC modeli mi? `SinX.Contracts`.
 4. Bu persistence, Identity, secret, audit veya job implementasyonu mu? `SinX.Infrastructure`.
 5. Bu Windows ya da bir provider entegrasyonu mu? İlgili adapter projesi.
-6. Bu controller, PageModel, ViewModel, Razor view veya statik UI varlığı mı? `SinX.Web`.
+6. Bu controller, ViewModel, Razor view veya statik UI varlığı mı? `SinX.Web`.
 7. Bu ayrıcalıklı operation endpoint/job execution kodu mu? `SinX.Worker`.
 
 Karar verilemiyorsa kod rastgele bir `Common`, `Helpers`, `Managers`, `Models` veya `Services` klasörüne konulmaz; mimari karar istenir.
@@ -54,7 +54,7 @@ Karar verilemiyorsa kod rastgele bir `Common`, `Helpers`, `Managers`, `Models` v
 
 ## Her değişiklikte beklenenler
 
-- Uygun test `tests/` altındaki karşılık gelen test projesine eklenir.
+- Uygun test `src/tests/` altındaki karşılık gelen test projesine eklenir.
 - Domain/tenant authorization için pozitif ve negatif senaryolar değerlendirilir.
 - State-changing operasyon için audit, idempotency ve rollback/compensation tanımlanır.
 - Secret, ham komut ve serbest path sözleşmelerden uzak tutulur.

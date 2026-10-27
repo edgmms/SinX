@@ -1,0 +1,19 @@
+syntax = "proto3";
+package sinx.worker.v1;
+option csharp_namespace = "SinX.Contracts.Worker.Grpc";
+
+// Local named-pipe gRPC service only. No credential bytes or text are transported.
+service WorkerDispatch { rpc Dispatch (DispatchRequest) returns (DispatchResponse); }
+
+message DispatchRequest {
+  int32 contract_version = 1;
+  string operation = 2;
+  string operation_id = 3;
+  string actor = 4;
+  string scope = 5;
+  string target = 6;
+  string secret_reference = 7;
+  string correlation_id = 8;
+  string user_name = 9;
+}
+message DispatchResponse { bool succeeded = 1; string subject_sid = 2; string error_code = 3; }
