@@ -1,3 +1,0 @@
-<Project Sdk="Microsoft.NET.Sdk">
-  <ItemGroup><ProjectReference Include="../SinX.Contracts/SinX.Contracts.csproj" /></ItemGroup>
-</Project>
